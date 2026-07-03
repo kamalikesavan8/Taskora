@@ -1,0 +1,8 @@
+# Backend
+task-manager-backend/node_modules
+task-manager-backend/.env
+
+# Frontend
+task-manager-frontend/node_modules
+task-manager-frontend/.env
+task-manager-frontend/.env.production
