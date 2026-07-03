@@ -13,7 +13,7 @@ const app = express();
 app.use(cors({
   origin: [
     'http://localhost:3000',
-    'https://taskora-cnqyszv5y-kamalikesavan8s-projects.vercel.app'
+    'https://taskora-cm2xy7s61-kamalikesavan8s-projects.vercel.app'
   ],
   credentials: true
 }));
