@@ -1,6 +1,93 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
+
+// Email transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+// Forgot Password
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'No account found with this email' });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = Date.now() + 3600000; // 1 hour
+
+    user.resetToken = resetToken;
+    user.resetTokenExpiry = resetTokenExpiry;
+    await user.save();
+
+    // Send email
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Taskora - Reset Your Password',
+      html: `
+        <div style="font-family: sans-serif; max-width: 400px; margin: 0 auto;">
+          <h2 style="color: #059669;">Taskora</h2>
+          <p>You requested a password reset.</p>
+          <p>Click the button below to reset your password. This link expires in 1 hour.</p>
+          <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background: #059669; color: white; border-radius: 8px; text-decoration: none; font-weight: bold;">
+            Reset Password
+          </a>
+          <p style="color: #999; font-size: 12px; margin-top: 20px;">If you didn't request this, ignore this email.</p>
+        </div>
+      `
+    });
+
+    res.status(200).json({ message: 'Password reset email sent!' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Reset Password
+const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    const user = await User.findOne({
+      resetToken: token,
+      resetTokenExpiry: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired reset token' });
+    }
+
+    // Validate new password
+    const validationError = validateUserInput(null, password);
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+    user.resetToken = undefined;
+    user.resetTokenExpiry = undefined;
+    await user.save();
+
+    res.status(200).json({ message: 'Password reset successfully!' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
 
 const validateUserInput = (name, password) => {
   if (name) {
@@ -11,7 +98,7 @@ const validateUserInput = (name, password) => {
     if (password.length < 6) return 'Password must be at least 6 characters';
     if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
     if (!/[0-9]/.test(password)) return 'Password must contain at least one number';
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) return 'Password must contain at least one special character';
+    if (!/[^a-zA-Z0-9]/.test(password)) return 'Password must contain at least one special character';
   }
   return null;
 };
@@ -129,4 +216,4 @@ const updateProfile = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getMe, deleteAccount, updateProfile };
+module.exports = { register, login, getMe, deleteAccount, updateProfile,forgotPassword,resetPassword };
