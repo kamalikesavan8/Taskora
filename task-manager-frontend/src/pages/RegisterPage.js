@@ -175,8 +175,8 @@ const RegisterPage = () => {
                 <p className={`text-xs ${/[0-9]/.test(formData.password) ? 'text-emerald-500' : 'text-gray-400'}`}>
                   {/[0-9]/.test(formData.password) ? '✅' : '⬜'} One number
                 </p>
-                <p className={`text-xs ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password) ? 'text-emerald-500' : 'text-gray-400'}`}>
-                  {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password) ? '✅' : '⬜'} One special character
+                <p className={`text-xs ${/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(formData.password) ? 'text-emerald-500' : 'text-gray-400'}`}>
+                  {/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(formData.password) ? '✅' : '⬜'} One special character
                 </p>
                 <p className={`text-xs ${formData.password.length >= 6 ? 'text-emerald-500' : 'text-gray-400'}`}>
                   {formData.password.length >= 6 ? '✅' : '⬜'} Minimum 6 characters
