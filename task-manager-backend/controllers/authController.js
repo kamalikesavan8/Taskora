@@ -35,37 +35,23 @@ const forgotPassword = async (req, res) => {
       return res.status(404).json({ message: 'No account found with this email' });
     }
 
-    // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenExpiry = Date.now() + 3600000; // 1 hour
+    const resetTokenExpiry = Date.now() + 3600000;
 
     user.resetToken = resetToken;
     user.resetTokenExpiry = resetTokenExpiry;
     await user.save();
 
-    // Send email
     const frontendUrl = process.env.FRONTEND_URL || 'https://taskora-two.vercel.app';
-const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
+    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Taskora - Reset Your Password',
-      html: `
-        <div style="font-family: sans-serif; max-width: 400px; margin: 0 auto;">
-          <h2 style="color: #059669;">Taskora</h2>
-          <p>You requested a password reset.</p>
-          <p>Click the button below to reset your password. This link expires in 1 hour.</p>
-          <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background: #059669; color: white; border-radius: 8px; text-decoration: none; font-weight: bold;">
-            Reset Password
-          </a>
-          <p style="color: #999; font-size: 12px; margin-top: 20px;">If you didn't request this, ignore this email.</p>
-        </div>
-      `
+    res.status(200).json({ 
+      message: 'Password reset link generated!',
+      resetUrl: resetUrl
     });
 
-    res.status(200).json({ message: 'Password reset email sent!' });
   } catch (error) {
+    console.log('Forgot password error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
