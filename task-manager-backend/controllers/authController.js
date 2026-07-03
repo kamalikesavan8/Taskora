@@ -44,7 +44,8 @@ const forgotPassword = async (req, res) => {
     await user.save();
 
     // Send email
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'https://taskora-two.vercel.app';
+const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
