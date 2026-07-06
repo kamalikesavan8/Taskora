@@ -1,7 +1,7 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
 import { openEditTaskModal } from '../../features/ui/uiSlice';
-import { useDeleteTaskMutation } from '../../features/tasks/taskApiSlice';
+import { useDeleteTaskMutation, useRestoreTaskMutation, usePermanentDeleteTaskMutation } from '../../features/tasks/taskApiSlice';
 import { getTaskDeadlineStatus } from '../../utils/deadlineUtils';
 import toast from 'react-hot-toast';
 
@@ -47,6 +47,8 @@ const deadlineStyles = {
 const TaskCard = ({ task }) => {
   const dispatch = useDispatch();
   const [deleteTask] = useDeleteTaskMutation();
+  const [restoreTask] = useRestoreTaskMutation();
+  const [permanentDeleteTask] = usePermanentDeleteTaskMutation();
 
   const deadlineStatus = task.status !== 'done'
     ? getTaskDeadlineStatus(task.dueDate)
@@ -58,7 +60,30 @@ const TaskCard = ({ task }) => {
     e.stopPropagation();
     try {
       await deleteTask(task._id).unwrap();
-      toast.success('Task deleted');
+
+      // Show undo toast
+      toast((t) => (
+        <div className="flex items-center gap-3">
+          <span className="text-sm">Task deleted</span>
+          <button
+            onClick={async () => {
+              toast.dismiss(t.id);
+              await restoreTask(task._id).unwrap();
+              toast.success('Task restored!');
+            }}
+            className="px-3 py-1 bg-emerald-600 text-white text-xs rounded-lg font-medium hover:bg-emerald-700"
+          >
+            Undo
+          </button>
+        </div>
+      ), {
+        duration: 5000,
+        onClose: async () => {
+          // Permanently delete after toast expires
+          await permanentDeleteTask(task._id).unwrap();
+        }
+      });
+
     } catch {
       toast.error('Failed to delete task');
     }
@@ -74,10 +99,9 @@ const TaskCard = ({ task }) => {
 
   return (
     <div
-  onClick={() => dispatch(openEditTaskModal(task))}
-  className={`bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border-2 ${style.border} cursor-pointer hover:shadow-md transition group`}
->
-      {/* Priority + Delete Row */}
+      onClick={() => dispatch(openEditTaskModal(task))}
+      className={`bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border-2 ${style.border} cursor-pointer hover:shadow-md transition group`}
+    >
       <div className="flex items-center justify-between mb-2">
         <span className={`text-xs font-medium px-2 py-1 rounded-full ${priorityColors[task.priority]}`}>
           {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
@@ -90,22 +114,25 @@ const TaskCard = ({ task }) => {
         </button>
       </div>
 
-      {/* Deadline Badge — only show if not on-track */}
       {deadlineStatus && deadlineStatus !== 'on-track' && (
         <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-2 ${style.badge}`}>
           {style.label}
         </span>
       )}
 
-      {/* Title */}
       <h4 className="text-sm font-semibold text-gray-800 dark:text-white mb-1">{task.title}</h4>
 
-      {/* Description */}
       {task.description && (
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">{task.description}</p>
       )}
 
-      {/* Due Date */}
+      {task.notes && (
+        <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 mt-1">
+          <span>📝</span>
+          <span>Has notes</span>
+        </div>
+      )}
+
       {task.dueDate && (
         <div className={`flex items-center gap-1 text-xs ${style.dateColor}`}>
           <span>📅</span>

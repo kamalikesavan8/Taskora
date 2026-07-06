@@ -112,20 +112,37 @@ const DashboardPage = () => {
               <ProjectProgress tasks={tasks} />
 
               {/* Project Header */}
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800 dark:text-white">
-                    {selectedProject.title}
-                  </h3>
-                 
-                </div>
-                <button
-                  onClick={() => dispatch(openCreateTaskModal())}
-                  className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition shadow-sm"
-                >
-                  + Add Task
-                </button>
-              </div>
+              {/* Project Header */}
+<div className="flex items-center justify-between mb-4">
+  <div>
+    <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+      {selectedProject.title}
+    </h3>
+    <div className="flex items-center gap-3 mt-1">
+      <p className="text-sm text-gray-500 dark:text-gray-400">
+        Kanban Board
+      </p>
+      <span className="text-gray-300 dark:text-gray-600">•</span>
+      <p className="text-sm text-gray-500 dark:text-gray-400">
+        📅 Created {new Date(selectedProject.createdAt).toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric'
+        })}
+      </p>
+      <span className="text-gray-300 dark:text-gray-600">•</span>
+      <p className="text-sm text-gray-500 dark:text-gray-400">
+        {tasks.length} task{tasks.length !== 1 ? 's' : ''} total
+      </p>
+    </div>
+  </div>
+  <button
+    onClick={() => dispatch(openCreateTaskModal())}
+    className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition shadow-sm"
+  >
+    + Add Task
+  </button>
+</div>
 
               {/* Search and Filter */}
               <TaskFilters />

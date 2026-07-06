@@ -19,7 +19,15 @@ const projectSchema = new mongoose.Schema({
   members: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
-  }]
+  }],
+  deleted: {
+  type: Boolean,
+  default: false
+},
+deletedAt: {
+  type: Date,
+  default: null
+}
 }, { timestamps: true });
 
 module.exports = mongoose.model('Project', projectSchema);

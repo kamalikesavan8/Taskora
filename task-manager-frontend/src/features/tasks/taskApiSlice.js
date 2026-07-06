@@ -37,6 +37,20 @@ export const taskApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Task'],
     }),
+    restoreTask: builder.mutation({
+  query: (id) => ({
+    url: `/tasks/${id}/restore`,
+    method: 'PATCH',
+  }),
+  invalidatesTags: ['Task'],
+}),
+permanentDeleteTask: builder.mutation({
+  query: (id) => ({
+    url: `/tasks/${id}/permanent`,
+    method: 'DELETE',
+  }),
+  invalidatesTags: ['Task'],
+}),
   }),
 });
 
@@ -46,4 +60,6 @@ export const {
   useUpdateTaskMutation,
   useUpdateTaskStatusMutation,
   useDeleteTaskMutation,
+  useRestoreTaskMutation,
+  usePermanentDeleteTaskMutation,
 } = taskApiSlice;

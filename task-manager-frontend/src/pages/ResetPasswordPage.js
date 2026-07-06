@@ -46,6 +46,7 @@ const ResetPasswordPage = () => {
       toast.error(error?.data?.message || 'Failed to reset password');
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center px-4">
@@ -61,6 +62,7 @@ const ResetPasswordPage = () => {
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
+                name='password'
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 placeholder="Enter new password"
@@ -73,7 +75,14 @@ const ResetPasswordPage = () => {
                 {showPassword ? <EyeOffIcon /> : <EyeIcon />}
               </button>
             </div>
-            {errors.password && <p className="text-xs text-red-500">⚠️ {errors.password}</p>}
+            
+            
+
+            {errors.password && <p className="text-xs text-red-500 mt-0.5">⚠️ {errors.password}</p>}
+
+          
+            
+          
           </div>
 
           <div className="flex flex-col gap-1">

@@ -9,7 +9,7 @@ const getTasks = async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
 
-    const tasks = await Task.find({ project: req.params.projectId })
+    const tasks = await Task.find({ project: req.params.projectId, deleted: false })
       .populate('assignee', 'name email')
       .populate('createdBy', 'name email')
       .sort({ createdAt: -1 });
@@ -89,7 +89,7 @@ const updateTaskStatus = async (req, res) => {
   }
 };
 
-// DELETE task
+// SOFT DELETE task
 const deleteTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -97,11 +97,50 @@ const deleteTask = async (req, res) => {
       return res.status(404).json({ message: 'Task not found' });
     }
 
-    await task.deleteOne();
-    res.status(200).json({ message: 'Task deleted successfully' });
+    task.deleted = true;
+    task.deletedAt = new Date();
+    await task.save();
+
+    res.status(200).json({ message: 'Task deleted', taskId: task._id });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-module.exports = { getTasks, createTask, updateTask, updateTaskStatus, deleteTask };
+// RESTORE task
+const restoreTask = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    task.deleted = false;
+    task.deletedAt = null;
+    await task.save();
+
+    res.status(200).json(task);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// PERMANENT DELETE task
+const permanentDeleteTask = async (req, res) => {
+  try {
+    await Task.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Task permanently deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+module.exports = { 
+  getTasks, 
+  createTask, 
+  updateTask, 
+  updateTaskStatus, 
+  deleteTask,
+  restoreTask,
+  permanentDeleteTask
+};
